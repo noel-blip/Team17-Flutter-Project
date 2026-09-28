@@ -32,10 +32,12 @@ jobs:
       - name: Bootstrap Android platform
         shell: bash
         run: |
-          flutter create . \
-            --platforms=android \
-            --org com.team17 \
-            --project-name team17_flutter_project
+          if [ ! -d android ]; then
+            flutter create . \
+              --platforms=android \
+              --org com.team17 \
+              --project-name team17_flutter_project
+          fi
           rm -f test/widget_test.dart
 
       - name: Get dependencies
