@@ -1,25 +1,27 @@
 # Demo Guide
 
-The login screen is adaptive. It does not render a phone-shaped rectangle on a desktop monitor.
+## Fastest option for a college monitor
+
+Use the Windows build. Flutter is not required on the demonstration PC.
+
+1. In GitHub, open **Actions**.
+2. Open **Demo Builds**.
+3. Click **Run workflow** if a fresh build is needed.
+4. Download the `Team17-Windows` artifact.
+5. Extract the ZIP completely.
+6. Run `team17_flutter_project.exe`.
+
+Do not run only the EXE by itself. Keep the EXE, `flutter_windows.dll`, and the `data/` folder together.
 
 ## Android phone
-Use the packaged APK when available. No Flutter installation is required on the phone.
 
-Demo login:
-- Student ID / Email: DEMO
-- Password: TEAM17
+Download the `Team17-Android-APK` artifact, extract `app-debug.apk`, and install it on the Android phone.
 
-## Windows college PC
-Use the packaged Windows ZIP when available:
-1. Extract the ZIP.
-2. Open the extracted folder.
-3. Run the Team 17 executable.
-4. The login page opens directly.
+## Browser / web hosting
 
-Flutter does not need to be installed on the demonstration PC.
+Download `Team17-Web-Bundle` for a production web build. It is intended to be served by a web server or hosting service rather than opened directly with `file://`.
 
-## Browser during development
-If Flutter is installed:
+For local browser development when Flutter is installed:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tool\bootstrap_web.ps1
@@ -27,9 +29,15 @@ flutter pub get
 flutter run -d chrome
 ```
 
-## Layout behavior
-- Phone: single-column login.
-- Tablet: centered, wider login form.
-- Desktop/large monitor: full two-column Campus Club presentation with the login form on the right.
+## Demo login
 
-The desktop layout intentionally uses the monitor instead of displaying a narrow mobile mockup in the center.
+- Student ID / Email: `DEMO`
+- Password: `TEAM17`
+
+## Layout behavior
+
+- under 600 px: phone layout
+- 600–999 px: tablet layout
+- 1000 px and above: full desktop two-column layout
+
+The desktop layout uses the monitor as a desktop application rather than drawing a small vertical mobile screen in the middle.
