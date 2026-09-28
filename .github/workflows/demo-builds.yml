@@ -79,6 +79,103 @@ jobs:
           cp -R /tmp/team17_web/web ./web
       - run: flutter pub get
       - run: flutter build web --release
+      - name: Add local backup launcher
+        shell: bash
+        run: |
+          mkdir -p build/web/RUN_LOCAL
+
+          cat > build/web/RUN_LOCAL/START_WEB.ps1 <<'POWERSHELL'
+          $ErrorActionPreference = "Stop"
+
+          $webRoot = Split-Path -Parent $PSScriptRoot
+          $port = 8000
+          $url = "http://localhost:$port/"
+
+          $python = Get-Command python -ErrorAction SilentlyContinue
+          $py = Get-Command py -ErrorAction SilentlyContinue
+
+          if ($python) {
+              $exe = $python.Source
+              $args = "-m http.server $port --directory `"$webRoot`""
+          } elseif ($py) {
+              $exe = $py.Source
+              $args = "-m http.server $port --directory `"$webRoot`""
+          } else {
+              Write-Host ""
+              Write-Host "Python was not found on this PC."
+              Write-Host "Use the live app instead:"
+              Write-Host "https://noel-blip.github.io/Team17-Flutter-Project/"
+              Write-Host ""
+              Read-Host "Press Enter to close"
+              exit 1
+          }
+
+          Write-Host "Starting Campus Club at $url"
+          $server = Start-Process -FilePath $exe -ArgumentList $args -WorkingDirectory $webRoot -PassThru
+          Start-Sleep -Seconds 1
+
+          if ($server.HasExited) {
+              Write-Host "The local server could not start. Port $port may already be in use."
+              Read-Host "Press Enter to close"
+              exit 1
+          }
+
+          Start-Process $url
+
+          Write-Host ""
+          Write-Host "Campus Club is running."
+          Write-Host "Keep this window open while using the local web app."
+          Write-Host "Press Enter here to stop the local server."
+          Read-Host | Out-Null
+
+          Stop-Process -Id $server.Id -Force -ErrorAction SilentlyContinue
+          POWERSHELL
+
+          cat > build/web/RUN_LOCAL/START_WEB.cmd <<'CMD'
+          @echo off
+          powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0START_WEB.ps1"
+          CMD
+
+          cat > build/web/RUN_LOCAL/README.txt <<'README'
+          TEAM 17 CAMPUS CLUB - WEB BACKUP
+
+          PRIMARY ONLINE VERSION
+          https://noel-blip.github.io/Team17-Flutter-Project/
+
+          EASIEST LOCAL METHOD ON WINDOWS
+          1. Double-click START_WEB.cmd
+          2. Your browser opens http://localhost:8000/
+          3. Keep the launcher window open while using the app.
+          4. Press Enter in the launcher window to stop the local server.
+
+          REQUIREMENT
+          Python must be installed for the local backup launcher.
+          If Python is unavailable, use the primary online version above.
+
+          MANUAL METHOD
+          Open PowerShell in the extracted web folder (the folder containing index.html), then run:
+
+              python -m http.server 8000
+
+          If that command is unavailable, try:
+
+              py -m http.server 8000
+
+          Then open:
+
+              http://localhost:8000/
+          README
+
+          cat > build/web/RUN_LOCAL/LIVE_SITE.url <<'LIVE'
+          [InternetShortcut]
+          URL=https://noel-blip.github.io/Team17-Flutter-Project/
+          LIVE
+
+          cat > build/web/RUN_LOCAL/LOCALHOST_8000.url <<'LOCAL'
+          [InternetShortcut]
+          URL=http://localhost:8000/
+          LOCAL
+
       - name: Package Web asset
         run: cd build/web && zip -r ../../Team17-Campus-Club-Web.zip .
       - uses: actions/upload-artifact@v4
@@ -133,4 +230,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="demo-${{ github.run_number }}"
-          gh release create "$TAG"             release-assets/Team17-Campus-Club.apk             release-assets/Team17-Campus-Club-Windows.zip             release-assets/Team17-Campus-Club-Web.zip             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "Team 17 Campus Club Demo #${{ github.run_number }}"             --notes "Cross-platform demo build. Windows: extract ZIP and run team17_flutter_project.exe. Android: install APK. Web: deploy the web ZIP to a static host. Demo login: DEMO / TEAM17."
+          gh release create "$TAG"             release-assets/Team17-Campus-Club.apk             release-assets/Team17-Campus-Club-Windows.zip             release-assets/Team17-Campus-Club-Web.zip             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "Team 17 Campus Club Demo #${{ github.run_number }}"             --notes "Cross-platform demo build. Windows: extract ZIP and run team17_flutter_project.exe. Android: install APK. Web: use the live GitHub Pages site, or keep the Web ZIP as an offline/portable backup; its RUN_LOCAL folder includes a Windows launcher and localhost instructions. Demo login: DEMO / TEAM17."
