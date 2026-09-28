@@ -8,7 +8,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authService = await AuthService.loadFromAsset(
-    'assets/credentials.json',
+    'assets/demo_users.json',
   );
 
   runApp(MyApp(authService: authService));
