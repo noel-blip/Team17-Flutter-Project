@@ -13,78 +13,75 @@ class Credential {
 }
 
 class AuthService {
-  AuthService._(
-    List<Credential> credentials, {
-    this.errorMessage,
-  }) : _credentials = List<Credential>.unmodifiable(credentials);
-
-  final List<Credential> _credentials;
-  final String? errorMessage;
-
-  List<Credential> get credentials => _credentials;
-
-  bool get isAvailable => errorMessage == null && _credentials.isNotEmpty;
+  AuthService._({
+    required List<Credential> credentials,
+    required this.isAvailable,
+  }) : _credentials = List.unmodifiable(credentials);
 
   factory AuthService.fromJson(String source) {
     try {
       final decoded = jsonDecode(source);
+
       if (decoded is! List) {
-        return AuthService._(
-          const <Credential>[],
-          errorMessage: 'Credential data must be a JSON list.',
-        );
+        return AuthService.unavailable();
       }
 
       final credentials = <Credential>[];
-      for (final entry in decoded) {
-        if (entry is! Map) {
-          continue;
+
+      for (final item in decoded) {
+        if (item is! Map<String, dynamic>) {
+          return AuthService.unavailable();
         }
 
-        final username = entry['username'];
-        final password = entry['password'];
-        if (username is String &&
-            username.trim().isNotEmpty &&
-            password is String &&
-            password.isNotEmpty) {
-          credentials.add(
-            Credential(
-              username: username.trim(),
-              password: password,
-            ),
-          );
-        }
-      }
+        final username = item['id'];
+        final password = item['value'];
 
-      if (credentials.isEmpty) {
-        return AuthService._(
-          const <Credential>[],
-          errorMessage: 'No valid credentials were found.',
+        if (username is! String ||
+            password is! String ||
+            username.trim().isEmpty ||
+            password.isEmpty) {
+          return AuthService.unavailable();
+        }
+
+        credentials.add(
+          Credential(
+            username: username.trim(),
+            password: password,
+          ),
         );
       }
 
-      return AuthService._(credentials);
-    } on Object {
+      if (credentials.isEmpty) {
+        return AuthService.unavailable();
+      }
+
       return AuthService._(
-        const <Credential>[],
-        errorMessage: 'Credential data could not be read.',
+        credentials: credentials,
+        isAvailable: true,
       );
+    } catch (_) {
+      return AuthService.unavailable();
     }
   }
 
-  static Future<AuthService> loadFromAsset([
-    String assetPath = 'assets/credentials.json',
-  ]) async {
+  factory AuthService.unavailable() {
+    return AuthService._(
+      credentials: const [],
+      isAvailable: false,
+    );
+  }
+
+  static Future<AuthService> loadFromAsset(String assetPath) async {
     try {
       final source = await rootBundle.loadString(assetPath);
       return AuthService.fromJson(source);
-    } on Object {
-      return AuthService._(
-        const <Credential>[],
-        errorMessage: 'Credential data could not be loaded.',
-      );
+    } catch (_) {
+      return AuthService.unavailable();
     }
   }
+
+  final List<Credential> _credentials;
+  final bool isAvailable;
 
   bool authenticate(String username, String password) {
     if (!isAvailable) {
@@ -92,6 +89,7 @@ class AuthService {
     }
 
     final normalizedUsername = username.trim();
+
     return _credentials.any(
       (credential) =>
           credential.username == normalizedUsername &&
