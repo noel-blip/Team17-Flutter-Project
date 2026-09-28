@@ -5,9 +5,16 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
 
 jobs:
   verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[publish-demo]') }}
     name: Verify Flutter source
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -17,14 +24,12 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Get dependencies
-        run: flutter pub get
-      - name: Run all tests
-        run: flutter test
-      - name: Analyze
-        run: flutter analyze
+      - run: flutter pub get
+      - run: flutter test
+      - run: flutter analyze
 
   android:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[publish-demo]') }}
     name: Build Android APK
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -45,17 +50,18 @@ jobs:
           flutter create /tmp/team17_android --platforms=android --org com.team17 --project-name team17_flutter_project
           cp -R /tmp/team17_android/android ./android
       - run: flutter pub get
-      - name: Build APK
-        run: flutter build apk --debug
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - run: flutter build apk --debug
+      - name: Prepare APK asset
+        run: cp build/app/outputs/flutter-apk/app-debug.apk Team17-Campus-Club.apk
+      - uses: actions/upload-artifact@v4
         with:
           name: Team17-Android-APK
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: Team17-Campus-Club.apk
           if-no-files-found: error
           retention-days: 30
 
   web:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[publish-demo]') }}
     name: Build Web bundle
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -72,17 +78,18 @@ jobs:
           flutter create /tmp/team17_web --platforms=web --project-name team17_flutter_project
           cp -R /tmp/team17_web/web ./web
       - run: flutter pub get
-      - name: Build Web
-        run: flutter build web --release
-      - name: Upload Web bundle
-        uses: actions/upload-artifact@v4
+      - run: flutter build web --release
+      - name: Package Web asset
+        run: cd build/web && zip -r ../../Team17-Campus-Club-Web.zip .
+      - uses: actions/upload-artifact@v4
         with:
           name: Team17-Web-Bundle
-          path: build/web
+          path: Team17-Campus-Club-Web.zip
           if-no-files-found: error
           retention-days: 30
 
   windows:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[publish-demo]') }}
     name: Build Windows desktop
     runs-on: windows-latest
     timeout-minutes: 30
@@ -100,12 +107,30 @@ jobs:
           flutter create $tempRoot --platforms=windows --org com.team17 --project-name team17_flutter_project
           Copy-Item -Recurse (Join-Path $tempRoot "windows") (Join-Path $env:GITHUB_WORKSPACE "windows")
       - run: flutter pub get
-      - name: Build Windows
-        run: flutter build windows --release
-      - name: Upload Windows build
-        uses: actions/upload-artifact@v4
+      - run: flutter build windows --release
+      - name: Package Windows asset
+        shell: pwsh
+        run: Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "Team17-Campus-Club-Windows.zip" -Force
+      - uses: actions/upload-artifact@v4
         with:
           name: Team17-Windows
-          path: build/windows/x64/runner/Release
+          path: Team17-Campus-Club-Windows.zip
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-demo]')) }}
+    name: Publish GitHub Release
+    needs: [verify, android, web, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="demo-${{ github.run_number }}"
+          gh release create "$TAG"             release-assets/Team17-Campus-Club.apk             release-assets/Team17-Campus-Club-Windows.zip             release-assets/Team17-Campus-Club-Web.zip             --repo "$GITHUB_REPOSITORY"             --target "$GITHUB_SHA"             --title "Team 17 Campus Club Demo #${{ github.run_number }}"             --notes "Cross-platform demo build. Windows: extract ZIP and run team17_flutter_project.exe. Android: install APK. Web: deploy the web ZIP to a static host. Demo login: DEMO / TEAM17."
