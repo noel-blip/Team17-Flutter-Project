@@ -33,8 +33,8 @@ class AuthService {
           return AuthService.unavailable();
         }
 
-        final username = item['username'];
-        final password = item['password'];
+        final username = item['id'];
+        final password = item['value'];
 
         if (username is! String ||
             password is! String ||
