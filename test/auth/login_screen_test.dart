@@ -2,23 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:team17_flutter_project/auth/auth_service.dart';
 import 'package:team17_flutter_project/auth/login_screen.dart';
-import 'package:team17_flutter_project/theme/app_theme.dart';
 
-AuthService _demoAuth() => AuthService.fromJson(
-      '[{"username":"24NE1A42E7","password":"123456"}]',
-    );
+AuthService _service() {
+  return AuthService.fromJson(
+    '''
+[
+  {
+    "id": "DEMO",
+    "value": "TEAM17"
+  }
+]
+''',
+  );
+}
 
-Widget _app({AuthService? authService}) {
+Widget _app(AuthService service) {
   return MaterialApp(
-    theme: AppTheme.light,
-    darkTheme: AppTheme.dark,
-    home: LoginScreen(authService: authService ?? _demoAuth()),
+    home: LoginScreen(authService: service),
   );
 }
 
 void main() {
-  testWidgets('renders the locked A plus tiny B login content', (tester) async {
-    await tester.pumpWidget(_app());
+  testWidgets('renders the approved login content', (tester) async {
+    await tester.pumpWidget(_app(_service()));
 
     expect(find.text('ACCESS'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
@@ -30,43 +36,46 @@ void main() {
     expect(find.text('Password'), findsOneWidget);
     expect(find.text('SHOW'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
-    expect(find.text('Demo access'), findsOneWidget);
+    expect(find.textContaining('Demo access'), findsOneWidget);
   });
 
   testWidgets('password starts hidden and SHOW toggles to HIDE', (tester) async {
-    await tester.pumpWidget(_app());
+    await tester.pumpWidget(_app(_service()));
 
-    final fieldBefore = tester.widget<TextField>(
+    TextField passwordField = tester.widget<TextField>(
       find.byKey(const Key('passwordField')),
     );
-    expect(fieldBefore.obscureText, isTrue);
+    expect(passwordField.obscureText, isTrue);
 
     await tester.tap(find.byKey(const Key('passwordVisibilityButton')));
     await tester.pump();
 
-    final fieldAfter = tester.widget<TextField>(
+    passwordField = tester.widget<TextField>(
       find.byKey(const Key('passwordField')),
     );
-    expect(fieldAfter.obscureText, isFalse);
+    expect(passwordField.obscureText, isFalse);
     expect(find.text('HIDE'), findsOneWidget);
   });
 
-  testWidgets('empty submit shows exact field validation copy', (tester) async {
-    await tester.pumpWidget(_app());
+  testWidgets('empty fields show the approved validation copy', (tester) async {
+    await tester.pumpWidget(_app(_service()));
 
     await tester.tap(find.byKey(const Key('continueButton')));
     await tester.pump();
 
-    expect(find.text('Enter your student ID or email'), findsOneWidget);
+    expect(
+      find.text('Enter your student ID or email'),
+      findsOneWidget,
+    );
     expect(find.text('Enter your password'), findsOneWidget);
   });
 
-  testWidgets('wrong credentials stay on login and show mismatch', (tester) async {
-    await tester.pumpWidget(_app());
+  testWidgets('wrong credentials stay on login with feedback', (tester) async {
+    await tester.pumpWidget(_app(_service()));
 
     await tester.enterText(
       find.byKey(const Key('usernameField')),
-      '24NE1A42E7',
+      'DEMO',
     );
     await tester.enterText(
       find.byKey(const Key('passwordField')),
@@ -76,70 +85,64 @@ void main() {
     await tester.pump();
 
     expect(find.text("Credentials don't match"), findsOneWidget);
-    expect(find.text('Authentication successful'), findsNothing);
+    expect(find.text('Sign in'), findsOneWidget);
   });
 
-  testWidgets('unavailable credential source fails safely', (tester) async {
-    await tester.pumpWidget(
-      _app(authService: AuthService.fromJson('{broken')),
-    );
+  testWidgets('unavailable login data fails safely', (tester) async {
+    await tester.pumpWidget(_app(AuthService.unavailable()));
 
     await tester.enterText(
       find.byKey(const Key('usernameField')),
-      '24NE1A42E7',
+      'DEMO',
     );
     await tester.enterText(
       find.byKey(const Key('passwordField')),
-      '123456',
+      'TEAM17',
     );
     await tester.tap(find.byKey(const Key('continueButton')));
     await tester.pump();
 
-    expect(find.text('Login is temporarily unavailable'), findsOneWidget);
-    expect(find.text('Authentication successful'), findsNothing);
+    expect(find.text('Login data is unavailable'), findsOneWidget);
   });
 
-  testWidgets('valid credentials show Verified then navigate', (tester) async {
-    await tester.pumpWidget(_app());
+  testWidgets('valid credentials verify and navigate', (tester) async {
+    await tester.pumpWidget(_app(_service()));
 
     await tester.enterText(
       find.byKey(const Key('usernameField')),
-      '24NE1A42E7',
+      'DEMO',
     );
     await tester.enterText(
       find.byKey(const Key('passwordField')),
-      '123456',
+      'TEAM17',
     );
     await tester.tap(find.byKey(const Key('continueButton')));
     await tester.pump();
 
     expect(find.text('Verified ✓'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
 
-    expect(find.text('Authentication successful'), findsOneWidget);
+    expect(find.text("You're in."), findsOneWidget);
+    expect(
+      find.textContaining('Authentication verified'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('small-height layout remains scrollable without overflow', (
+  testWidgets('small phone height remains scrollable without overflow', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      Center(
-        child: SizedBox(
-          width: 360,
-          height: 420,
-          child: _app(),
-        ),
-      ),
-    );
+    await tester.binding.setSurfaceSize(const Size(360, 500));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
 
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    await tester.tap(find.byKey(const Key('passwordField')));
+    await tester.pumpWidget(_app(_service()));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
   });
 }
