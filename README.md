@@ -31,6 +31,18 @@ The committed demo values are synthetic project data.
 
 ## Show the app without Flutter installed
 
+### Easiest: GitHub Releases
+
+Open the repository's **Releases** page and download the build you need:
+
+- `Team17-Campus-Club-Windows.zip` — college/laptop Windows demo
+- `Team17-Campus-Club.apk` — Android phone
+- `Team17-Campus-Club-Web.zip` — web deployment bundle
+
+A GitHub Actions workflow builds these from the same Flutter source and publishes them as release assets.
+
+
+
 The repository has a GitHub Actions workflow named **Demo Builds**.
 
 From GitHub:
