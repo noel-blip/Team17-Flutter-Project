@@ -1,0 +1,49 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/login-screen
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Bootstrap Android platform
+        shell: bash
+        run: |
+          flutter create .             --platforms=android             --org com.team17             --project-name team17_flutter_project
+          rm -f test/widget_test.dart
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build debug APK
+        run: flutter build apk --debug
