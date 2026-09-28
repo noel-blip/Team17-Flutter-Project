@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/login-screen
   pull_request:
     branches:
       - main
@@ -33,13 +32,25 @@ jobs:
       - name: Bootstrap Android platform
         shell: bash
         run: |
-          flutter create .             --platforms=android             --org com.team17             --project-name team17_flutter_project
+          flutter create . \
+            --platforms=android \
+            --org com.team17 \
+            --project-name team17_flutter_project
           rm -f test/widget_test.dart
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Run tests
+      - name: Auth service tests
+        run: flutter test test/auth/auth_service_test.dart
+
+      - name: Theme tests
+        run: flutter test test/theme/app_theme_test.dart
+
+      - name: Login screen tests
+        run: flutter test test/auth/login_screen_test.dart
+
+      - name: Full test suite
         run: flutter test
 
       - name: Analyze
