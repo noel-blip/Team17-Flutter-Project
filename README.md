@@ -4,16 +4,23 @@ Campus Club App Flutter coursework project.
 
 ## Current milestone
 
-The reusable login foundation is implemented:
+The reusable login foundation is implemented and verified across phone, tablet, desktop, and web-sized layouts.
 
+### Login features
 - system-following light and dark themes
-- local JSON login validation
+- local JSON demo authentication
 - empty-field and invalid-login feedback
 - password SHOW / HIDE
 - brief `Verified ✓` success state
 - safe handling of missing or malformed login data
 - temporary authenticated destination
-- unit and widget tests
+
+### Adaptive layout
+- phone: compact single-column login
+- tablet: wider bounded login form
+- desktop / large monitor: full two-column Campus Club presentation with the login form on the right
+
+The desktop version is intentionally not a phone-shaped rectangle in the middle of the monitor.
 
 ### Demo access
 
@@ -22,34 +29,72 @@ The reusable login foundation is implemented:
 
 The committed demo values are synthetic project data.
 
-## Safe local setup
+## Show the app without Flutter installed
 
-Do **not** run `flutter create .` directly inside this repository. A previous CI attempt proved that it can overwrite existing Flutter source.
+The repository has a GitHub Actions workflow named **Demo Builds**.
 
-On Windows, use the safe bootstrap script instead:
+From GitHub:
+
+1. Open **Actions**.
+2. Select **Demo Builds**.
+3. Click **Run workflow**.
+4. When it finishes, download the artifact you want:
+   - `Team17-Windows` — Windows desktop build
+   - `Team17-Android-APK` — Android APK
+   - `Team17-Web-Bundle` — production web files
+
+For a college Windows PC, extract `Team17-Windows` and run:
+
+```text
+team17_flutter_project.exe
+```
+
+Flutter does not need to be installed on that PC.
+
+GitHub Actions artifacts are retained for 30 days. Run the workflow again whenever a fresh package is needed.
+
+## Safe local development
+
+Never run `flutter create .` directly inside this repository.
+
+### Android
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tool\bootstrap_android.ps1
 flutter pub get
-flutter test
 flutter run
 ```
 
-The bootstrap script creates a temporary Flutter project and copies only its generated `android/` directory into this repository.
+### Windows desktop
 
-## Project structure
-
-```text
-assets/demo_users.json
-lib/main.dart
-lib/auth/auth_service.dart
-lib/auth/login_screen.dart
-lib/home/placeholder_home_screen.dart
-lib/theme/app_theme.dart
-test/auth/auth_service_test.dart
-test/auth/login_screen_test.dart
-test/theme/app_theme_test.dart
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tool\bootstrap_windows.ps1
+flutter pub get
+flutter run -d windows
 ```
+
+### Web
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tool\bootstrap_web.ps1
+flutter pub get
+flutter run -d chrome
+```
+
+Each bootstrap script creates a temporary Flutter scaffold and copies only the required platform directory into this repository.
+
+## Verification
+
+The adaptive login milestone passed:
+
+- 16 Flutter tests
+- desktop two-column layout test
+- tablet layout test
+- short-phone overflow test
+- `flutter analyze` with no issues
+- Android APK build
+- Windows release build
+- Web release build
 
 ## Next milestone
 
