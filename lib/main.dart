@@ -6,22 +6,23 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final authService = await AuthService.loadFromAsset();
+
+  final authService = await AuthService.loadFromAsset(
+    'assets/demo_users.json',
+  );
+
   runApp(MyApp(authService: authService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({
-    super.key,
-    required this.authService,
-  });
+  const MyApp({super.key, required this.authService});
 
   final AuthService authService;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Team 17 Flutter Project',
+      title: 'Team 17',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
