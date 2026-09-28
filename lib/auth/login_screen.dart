@@ -236,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 18),
                     Center(
                       child: Text(
-                        'Demo access · 24NE1A42E7 / 123456',
+                        'Demo access · DEMO / TEAM17',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: textColor.withValues(alpha: 0.48),
                         ),
