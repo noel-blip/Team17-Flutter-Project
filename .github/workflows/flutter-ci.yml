@@ -29,16 +29,13 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Bootstrap Android platform
+      - name: Bootstrap Android platform safely
         shell: bash
         run: |
-          if [ ! -d android ]; then
-            flutter create . \
-              --platforms=android \
-              --org com.team17 \
-              --project-name team17_flutter_project
-          fi
-          rm -f test/widget_test.dart
+          rm -rf /tmp/team17_bootstrap
+          flutter create /tmp/team17_bootstrap             --platforms=android             --org com.team17             --project-name team17_flutter_project
+          rm -rf android
+          cp -R /tmp/team17_bootstrap/android ./android
 
       - name: Get dependencies
         run: flutter pub get
