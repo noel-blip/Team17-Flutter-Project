@@ -39,7 +39,7 @@ Open the repository's **Releases** page and download the build you need:
 
 - `Team17-Campus-Club-Windows.zip` — college/laptop Windows demo
 - `Team17-Campus-Club.apk` — Android phone
-- `Team17-Campus-Club-Web.zip` — web deployment bundle
+- `Team17-Campus-Club-Web.zip` — backup/portable web snapshot; use the live Pages site normally
 
 A GitHub Actions workflow builds these from the same Flutter source and publishes them as release assets.
 
@@ -66,6 +66,22 @@ team17_flutter_project.exe
 Flutter does not need to be installed on that PC.
 
 GitHub Actions artifacts are retained for 30 days. Run the workflow again whenever a fresh package is needed.
+
+### Web backup ZIP
+
+Normal use: open the live web app:
+
+`https://noel-blip.github.io/Team17-Flutter-Project/`
+
+The Web ZIP is kept as a backup snapshot. Inside it, open `RUN_LOCAL/`:
+
+- `START_WEB.cmd` — easiest Windows launcher
+- `START_WEB.ps1` — PowerShell launcher
+- `README.txt` — local/manual instructions
+- `LIVE_SITE.url` — shortcut to the hosted app
+- `LOCALHOST_8000.url` — shortcut to the local server
+
+The local launcher detects `python` or `py`, starts the web server on port 8000, and opens the browser automatically.
 
 ## Safe local development
 
