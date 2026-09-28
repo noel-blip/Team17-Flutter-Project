@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../home/placeholder_home_screen.dart';
+import '../theme/app_theme.dart';
 import 'auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,37 +19,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _usernameFocus = FocusNode();
-  final _passwordFocus = FocusNode();
 
-  bool _obscurePassword = true;
+  bool _passwordVisible = false;
   bool _buttonPressed = false;
   bool _verified = false;
+
   String? _usernameError;
   String? _passwordError;
   String? _generalError;
 
   @override
-  void initState() {
-    super.initState();
-    _usernameFocus.addListener(_refreshFocusState);
-    _passwordFocus.addListener(_refreshFocusState);
-  }
-
-  void _refreshFocusState() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
   void dispose() {
-    _usernameFocus
-      ..removeListener(_refreshFocusState)
-      ..dispose();
-    _passwordFocus
-      ..removeListener(_refreshFocusState)
-      ..dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -59,20 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    FocusScope.of(context).unfocus();
-
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    String? usernameError;
-    String? passwordError;
-
-    if (username.isEmpty) {
-      usernameError = 'Enter your student ID or email';
-    }
-    if (password.isEmpty) {
-      passwordError = 'Enter your password';
-    }
+    final usernameError =
+        username.isEmpty ? 'Enter your student ID or email' : null;
+    final passwordError =
+        password.isEmpty ? 'Enter your password' : null;
 
     setState(() {
       _usernameError = usernameError;
@@ -86,246 +60,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!widget.authService.isAvailable) {
       setState(() {
-        _generalError = 'Login is temporarily unavailable';
+        _generalError = 'Login data is unavailable';
       });
       return;
     }
 
     if (!widget.authService.authenticate(username, password)) {
       setState(() {
-        _passwordError = "Credentials don't match";
+        _generalError = "Credentials don't match";
       });
       return;
     }
 
+    FocusManager.instance.primaryFocus?.unfocus();
+
     setState(() {
       _verified = true;
-      _usernameError = null;
-      _passwordError = null;
-      _generalError = null;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 450));
 
     if (!mounted) {
       return;
     }
 
     await Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        transitionDuration: const Duration(milliseconds: 220),
-        reverseTransitionDuration: const Duration(milliseconds: 180),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return const PlaceholderHomeScreen();
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            ),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
-  InputBorder _underline(
-    BuildContext context, {
-    required bool focused,
-    required bool error,
-  }) {
-    final theme = Theme.of(context);
-    final color = error
-        ? theme.colorScheme.error
-        : focused
-            ? theme.colorScheme.primary
-            : theme.dividerColor;
-
-    return UnderlineInputBorder(
-      borderSide: BorderSide(
-        color: color,
-        width: focused || error ? 1.8 : 1.0,
-      ),
-    );
-  }
-
-  Widget _fieldLabel(String label) {
-    final theme = Theme.of(context);
-    return Text(
-      label,
-      style: theme.textTheme.labelMedium,
-    );
-  }
-
-  Widget _usernameField() {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel('Student ID / Email'),
-        const SizedBox(height: 7),
-        TextField(
-          key: const Key('usernameField'),
-          controller: _usernameController,
-          focusNode: _usernameFocus,
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.emailAddress,
-          autocorrect: false,
-          autofillHints: const [
-            AutofillHints.username,
-            AutofillHints.email,
-          ],
-          cursorColor: theme.colorScheme.primary,
-          style: theme.textTheme.bodyLarge,
-          onSubmitted: (_) => _passwordFocus.requestFocus(),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.only(bottom: 10),
-            errorText: _usernameError,
-            errorMaxLines: 2,
-            border: _underline(
-              context,
-              focused: false,
-              error: _usernameError != null,
-            ),
-            enabledBorder: _underline(
-              context,
-              focused: false,
-              error: _usernameError != null,
-            ),
-            focusedBorder: _underline(
-              context,
-              focused: true,
-              error: _usernameError != null,
-            ),
-            errorBorder: _underline(
-              context,
-              focused: false,
-              error: true,
-            ),
-            focusedErrorBorder: _underline(
-              context,
-              focused: true,
-              error: true,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _passwordField() {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel('Password'),
-        const SizedBox(height: 7),
-        TextField(
-          key: const Key('passwordField'),
-          controller: _passwordController,
-          focusNode: _passwordFocus,
-          obscureText: _obscurePassword,
-          enableSuggestions: false,
-          autocorrect: false,
-          textInputAction: TextInputAction.done,
-          autofillHints: const [AutofillHints.password],
-          cursorColor: theme.colorScheme.primary,
-          style: theme.textTheme.bodyLarge,
-          onSubmitted: (_) => _submit(),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.only(bottom: 10),
-            errorText: _passwordError,
-            errorMaxLines: 2,
-            suffixIconConstraints: const BoxConstraints(
-              minWidth: 56,
-              minHeight: 36,
-            ),
-            suffixIcon: TextButton(
-              key: const Key('passwordVisibilityButton'),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-              style: TextButton.styleFrom(
-                minimumSize: const Size(56, 36),
-                padding: EdgeInsets.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(_obscurePassword ? 'SHOW' : 'HIDE'),
-            ),
-            border: _underline(
-              context,
-              focused: false,
-              error: _passwordError != null,
-            ),
-            enabledBorder: _underline(
-              context,
-              focused: false,
-              error: _passwordError != null,
-            ),
-            focusedBorder: _underline(
-              context,
-              focused: true,
-              error: _passwordError != null,
-            ),
-            errorBorder: _underline(
-              context,
-              focused: false,
-              error: true,
-            ),
-            focusedErrorBorder: _underline(
-              context,
-              focused: true,
-              error: true,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _continueButton() {
-    return Listener(
-      onPointerDown: (_) {
-        if (!_verified) {
-          setState(() => _buttonPressed = true);
-        }
-      },
-      onPointerUp: (_) {
-        if (_buttonPressed) {
-          setState(() => _buttonPressed = false);
-        }
-      },
-      onPointerCancel: (_) {
-        if (_buttonPressed) {
-          setState(() => _buttonPressed = false);
-        }
-      },
-      child: AnimatedScale(
-        scale: _buttonPressed ? 0.985 : 1,
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            key: const Key('continueButton'),
-            onPressed: _verified ? null : _submit,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 160),
-              child: Text(
-                _verified ? 'Verified ✓' : 'Continue',
-                key: ValueKey<bool>(_verified),
-              ),
-            ),
-          ),
-        ),
+      MaterialPageRoute<void>(
+        builder: (_) => const PlaceholderHomeScreen(),
       ),
     );
   }
@@ -333,68 +94,153 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textColor = theme.brightness == Brightness.dark
+        ? AppTheme.darkText
+        : AppTheme.lightText;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final minimumContentHeight =
+                constraints.maxHeight > 72 ? constraints.maxHeight - 72 : 0.0;
+
             return SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(28, 42, 28, 32),
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(28, 44, 28, 28),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 74,
+                  minHeight: minimumContentHeight,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'ACCESS',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
+                      style: TextStyle(
+                        color: AppTheme.accent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.2,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     Text(
                       'Sign in',
-                      style: theme.textTheme.displaySmall,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -1.1,
+                        height: 1.05,
+                      ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Text(
                       'Use your student ID or email to continue.',
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: textColor.withValues(alpha: 0.60),
+                        height: 1.45,
+                      ),
                     ),
-                    const SizedBox(height: 52),
-                    _usernameField(),
-                    const SizedBox(height: 30),
-                    _passwordField(),
-                    const SizedBox(height: 18),
-                    AnimatedSwitcher(
+                    const SizedBox(height: 42),
+                    TextField(
+                      key: const Key('usernameField'),
+                      controller: _usernameController,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Student ID / Email',
+                        errorText: _usernameError,
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    TextField(
+                      key: const Key('passwordField'),
+                      controller: _passwordController,
+                      obscureText: !_passwordVisible,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        errorText: _passwordError,
+                        suffixIcon: TextButton(
+                          key: const Key('passwordVisibilityButton'),
+                          onPressed: () {
+                            setState(() {
+                              _passwordVisible = !_passwordVisible;
+                            });
+                          },
+                          child: Text(
+                            _passwordVisible ? 'HIDE' : 'SHOW',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    AnimatedSize(
                       duration: const Duration(milliseconds: 160),
+                      alignment: Alignment.topLeft,
                       child: _generalError == null
-                          ? const SizedBox.shrink()
+                          ? const SizedBox(height: 28)
                           : Padding(
-                              key: ValueKey<String>(_generalError!),
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.only(top: 14),
                               child: Text(
                                 _generalError!,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.w500,
+                                key: const Key('generalError'),
+                                style: const TextStyle(
+                                  color: AppTheme.accent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                     ),
+                    Listener(
+                      onPointerDown: (_) {
+                        if (!_verified) {
+                          setState(() => _buttonPressed = true);
+                        }
+                      },
+                      onPointerUp: (_) {
+                        if (_buttonPressed) {
+                          setState(() => _buttonPressed = false);
+                        }
+                      },
+                      onPointerCancel: (_) {
+                        if (_buttonPressed) {
+                          setState(() => _buttonPressed = false);
+                        }
+                      },
+                      child: AnimatedScale(
+                        scale: _buttonPressed ? 0.985 : 1,
+                        duration: const Duration(milliseconds: 90),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            key: const Key('continueButton'),
+                            onPressed: _verified ? null : _submit,
+                            child: Text(
+                              _verified ? 'Verified ✓' : 'Continue',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 18),
-                    _continueButton(),
-                    const SizedBox(height: 22),
                     Center(
                       child: Text(
-                        'Demo access',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 12,
+                        'Demo access · DEMO / TEAM17',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: textColor.withValues(alpha: 0.48),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
