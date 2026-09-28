@@ -1,5 +1,7 @@
 # Demo Guide
 
+Live web app: https://noel-blip.github.io/Team17-Flutter-Project/
+
 ## Fastest option: download from GitHub Releases
 
 No pendrive and no Flutter installation are required on the demonstration machine.
