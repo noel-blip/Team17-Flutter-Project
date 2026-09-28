@@ -1,33 +1,30 @@
 # Demo Guide
 
-## Fastest option for a college monitor
+## Fastest option: download from GitHub Releases
 
-Use the Windows build. Flutter is not required on the demonstration PC.
+No pendrive and no Flutter installation are required on the demonstration machine.
 
-1. In GitHub, open **Actions**.
-2. Open **Demo Builds**.
-3. Click **Run workflow** if a fresh build is needed.
-4. Download the `Team17-Windows` artifact.
-5. Extract the ZIP completely.
-6. Run `team17_flutter_project.exe`.
+Open the repository's **Releases** page and download:
 
-Do not run only the EXE by itself. Keep the EXE, `flutter_windows.dll`, and the `data/` folder together.
+- `Team17-Campus-Club-Windows.zip` for a Windows PC
+- `Team17-Campus-Club.apk` for Android
+- `Team17-Campus-Club-Web.zip` for web hosting
+
+## College Windows PC
+
+1. Download `Team17-Campus-Club-Windows.zip` from Releases.
+2. Extract the ZIP completely.
+3. Run `team17_flutter_project.exe`.
+
+Keep the EXE, `flutter_windows.dll`, and the `data/` folder together.
 
 ## Android phone
 
-Download the `Team17-Android-APK` artifact, extract `app-debug.apk`, and install it on the Android phone.
+Download `Team17-Campus-Club.apk` from Releases and install it.
 
-## Browser / web hosting
+## Web
 
-Download `Team17-Web-Bundle` for a production web build. It is intended to be served by a web server or hosting service rather than opened directly with `file://`.
-
-For local browser development when Flutter is installed:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tool\bootstrap_web.ps1
-flutter pub get
-flutter run -d chrome
-```
+The Web ZIP is the production browser bundle. It must be served by a web host/server rather than opened directly with `file://`.
 
 ## Demo login
 
@@ -40,4 +37,4 @@ flutter run -d chrome
 - 600–999 px: tablet layout
 - 1000 px and above: full desktop two-column layout
 
-The desktop layout uses the monitor as a desktop application rather than drawing a small vertical mobile screen in the middle.
+All of these are builds of the same Flutter/Dart application source.
