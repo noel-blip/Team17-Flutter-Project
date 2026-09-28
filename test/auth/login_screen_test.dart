@@ -143,6 +143,44 @@ void main() {
     await tester.pump();
 
     expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('compactLoginLayout')), findsOneWidget);
     expect(find.byType(SingleChildScrollView), findsOneWidget);
+  });
+
+  testWidgets('tablet uses compact layout with a bounded form', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+
+    await tester.pumpWidget(_app(_service()));
+    await tester.pump();
+
+    expect(find.byKey(const Key('compactLoginLayout')), findsOneWidget);
+    expect(find.byKey(const Key('desktopLoginLayout')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('desktop uses full two-column layout instead of phone frame', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+
+    await tester.pumpWidget(_app(_service()));
+    await tester.pump();
+
+    expect(find.byKey(const Key('desktopLoginLayout')), findsOneWidget);
+    expect(find.byKey(const Key('desktopIntro')), findsOneWidget);
+    expect(find.text('CAMPUS\nCLUB'), findsOneWidget);
+    expect(find.byKey(const Key('compactLoginLayout')), findsNothing);
+
+    final formSize = tester.getSize(
+      find.byKey(const Key('desktopLoginForm')),
+    );
+    expect(formSize.width, lessThanOrEqualTo(520));
+    expect(tester.takeException(), isNull);
   });
 }
