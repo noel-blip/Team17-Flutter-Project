@@ -26,7 +26,21 @@ Download `Team17-Campus-Club.apk` from Releases and install it.
 
 ## Web
 
-The Web ZIP is the production browser bundle. It must be served by a web host/server rather than opened directly with `file://`.
+Primary method:
+
+`https://noel-blip.github.io/Team17-Flutter-Project/`
+
+No download or local server is needed for normal use.
+
+The Web ZIP in Releases is kept as a backup/portable snapshot. After extracting it, open `RUN_LOCAL/`:
+
+1. Double-click `START_WEB.cmd`.
+2. It detects `python` or `py`.
+3. It starts a local server.
+4. It automatically opens `http://localhost:8000/`.
+5. Keep the launcher window open; press Enter there to stop the server.
+
+The same folder also includes `README.txt`, `LIVE_SITE.url`, and `LOCALHOST_8000.url`.
 
 ## Demo login
 
