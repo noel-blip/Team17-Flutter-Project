@@ -1,0 +1,110 @@
+name: Demo Builds
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: Verify Flutter source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Run all tests
+        run: flutter test
+      - name: Analyze
+        run: flutter analyze
+
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Bootstrap Android safely
+        shell: bash
+        run: |
+          rm -rf /tmp/team17_android
+          flutter create /tmp/team17_android --platforms=android --org com.team17 --project-name team17_flutter_project
+          cp -R /tmp/team17_android/android ./android
+      - run: flutter pub get
+      - name: Build APK
+        run: flutter build apk --debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Team17-Android-APK
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  web:
+    name: Build Web bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Bootstrap Web safely
+        shell: bash
+        run: |
+          rm -rf /tmp/team17_web
+          flutter create /tmp/team17_web --platforms=web --project-name team17_flutter_project
+          cp -R /tmp/team17_web/web ./web
+      - run: flutter pub get
+      - name: Build Web
+        run: flutter build web --release
+      - name: Upload Web bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Team17-Web-Bundle
+          path: build/web
+          if-no-files-found: error
+          retention-days: 30
+
+  windows:
+    name: Build Windows desktop
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Bootstrap Windows safely
+        shell: pwsh
+        run: |
+          $tempRoot = Join-Path $env:RUNNER_TEMP "team17_windows"
+          if (Test-Path $tempRoot) { Remove-Item -Recurse -Force $tempRoot }
+          flutter create $tempRoot --platforms=windows --org com.team17 --project-name team17_flutter_project
+          Copy-Item -Recurse (Join-Path $tempRoot "windows") (Join-Path $env:GITHUB_WORKSPACE "windows")
+      - run: flutter pub get
+      - name: Build Windows
+        run: flutter build windows --release
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Team17-Windows
+          path: build/windows/x64/runner/Release
+          if-no-files-found: error
+          retention-days: 30
