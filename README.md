@@ -6,7 +6,9 @@ Campus Club App Flutter coursework project.
 
 ## Current milestone
 
-The reusable login foundation is implemented and verified across phone, tablet, desktop, and web-sized layouts.
+**LOCKED — Login milestone complete.**
+
+The reusable login foundation is implemented and verified across phone, tablet, desktop, and web-sized layouts. No additional feature work is currently scheduled.
 
 ### Login features
 - system-following light and dark themes
@@ -126,6 +128,8 @@ The adaptive login milestone passed:
 - Windows release build
 - Web release build
 
-## Next milestone
+## Scope status
 
-Replace the temporary authenticated destination with the Campus Club home experience, then add the Clubs/Events JSON flow.
+The project is frozen at the completed login milestone. Production-authentication features such as password recovery, Google sign-in, and registration are intentionally not represented by non-functional placeholder buttons.
+
+See `SCOPE_LOCK.md` for the lock rationale and reopen conditions.
