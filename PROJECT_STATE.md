@@ -4,7 +4,7 @@
 Team 17 Campus Club App.
 
 ## Current milestone
-Reusable adaptive login foundation before the real Campus Club home screen.
+LOCKED — verified adaptive login milestone complete.
 
 ## Implemented
 - system light/dark theme
@@ -58,5 +58,13 @@ Artifacts are retained for 30 days.
 
 The earlier failed CI path ran `flutter create .` inside the working repository and could regenerate source files. All current platform bootstraps generate into temporary directories and copy only the requested platform scaffold.
 
-## Next milestone
-Design and implement the Campus Club home screen, then the Clubs/Events JSON flow.
+## Scope lock
+
+No additional feature work is currently scheduled.
+
+Forgot password, Google sign-in, registration, and other production-authentication controls are deliberately excluded from this local demo-auth milestone because the project has no production identity backend/provider configured. Non-functional placeholder controls are not being added.
+
+See `SCOPE_LOCK.md`.
+
+## Reopen condition
+Resume development only when the faculty provides a concrete new requirement or the team explicitly chooses the next feature.
