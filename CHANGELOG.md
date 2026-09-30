@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-30 — Login milestone scope locked
+
+### Decision
+- froze feature development at the completed login milestone
+- kept GitHub Pages, Releases, build workflows, and verification infrastructure operational
+- documented that password recovery, Google sign-in, registration, and similar production-authentication features are outside the current local demo-auth scope
+- added `SCOPE_LOCK.md` with explicit reopen conditions
+
+
 ## 2026-09-28 — Adaptive multi-platform login demo
 
 ### Added
